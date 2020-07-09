@@ -38,6 +38,9 @@ window.requestAnimationFrame(function () {
   case "fibonacci":
     fibonacci();
     break;
+  case "lucas":
+    lucas();
+    break;
   case "threes":
     threes();
     break;
@@ -47,6 +50,9 @@ window.requestAnimationFrame(function () {
   case "powerTwo":
     powerTwo();
     break;
+  case "baseThree":
+    baseThree();
+    break;
   case "tileZero":
     tileZero();
     break;
@@ -55,6 +61,9 @@ window.requestAnimationFrame(function () {
     break;
   case "gravity":
     gravity();
+    break;
+  case "troll":
+    troll();
     break;
   default:
     normal();
@@ -222,7 +231,7 @@ function normalMerge(a, b) {
 }
 
 function normalWin(merged) {
-  return merged === 4096;
+  return merged === Infinity;
 }
 
 function normal() {
@@ -258,6 +267,29 @@ function fibonacci() {
     function(merged) { return merged === 5702887; });
 }
 
+function lucas() {
+  var fib = new Array();
+  var a = 2, b = 1;
+  fib.push(a);
+  fib.push(b);
+  while (a + b <= 2147483648) {
+    var c = a + b;
+    fib.push(c);
+    a = b;
+    b = c;
+  }
+  changeRule(function() { return Math.random() < 0.8 ? 1 : 2; },
+    function(a, b) {
+      for (var i = 0; i < fib.length; ++i) {
+        if (a + b === fib[i]) {
+          return true;
+        }
+      }
+      return false;
+    }, 
+    function(merged) { return merged === 0.5; });
+}
+
 function threes() {
   changeRule(function() { return Math.random() < 0.7 ? (Math.random() < 0.5 ? 1 : 2) : 3; },
     function(a, b) { return (a === 1 && b === 2) || (a === 2 && b === 1) || (a > 2 && b > 2 && a === b); }, 
@@ -278,12 +310,16 @@ function powerTwo() {
       index = 1;
     } else {
       index <<= 1;
-      if (index > 65536) {
+      if (index > 2147483648) {
         index = 0;
       }
     }
     return value;
   }, normalMerge, normalWin);
+}
+
+function baseThree() {
+  changeRule(function() { return Math.random() < 0.9 ? 3 : 6; }, normalMerge, normalWin);
 }
 
 function tileZero() {
@@ -305,6 +341,20 @@ function gravity() {
   game.move = function(dir) {
     game.gravity(dir);
     game.gravity(2);
+  };
+  game.inputManager.events["move"] = [];
+  game.inputManager.on("move", game.move.bind(game));
+  game.restart();
+}
+
+function troll() {
+  changeRule(normalAdd, 
+    function(a, b) { return a === b; }, 
+    function(merged) { return merged === 2147483648; });
+  game.gravity = game.move;
+  game.move = function(dir) {
+    game.gravity(dir);
+    game.gravity(Math.floor(Math.random() * 4));
   };
   game.inputManager.events["move"] = [];
   game.inputManager.on("move", game.move.bind(game));
